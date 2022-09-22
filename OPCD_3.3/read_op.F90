@@ -1,5 +1,4 @@
 
-
 ! density grid: user defined
 ! temperature grid: original
 
@@ -13,12 +12,12 @@ program read_op
   integer :: iz(17)
   real(4) :: fa(17)
   integer :: i, ite, ite1, ite2, ite3
-  integer :: j, jne, jne1, jne2, jne3, jj
+  integer :: j, jne, jne1, jne2, jne3
   integer :: n, nel
-  real(8), parameter :: rho_min = -22d0, rho_max = 0d0
+  real(8), parameter :: rho_min = -22d0, rho_max = 8d0
   real(8) :: drho
   integer, parameter :: kmin = 1, kmax = 256
-  real(8), parameter :: tmp_min = 0.5d0, tmp_max = 6.5d0
+  real(8), parameter :: tmp_min = 0.5d0, tmp_max = 8d0
   real(8), parameter :: dtmp = 0.025d0
   integer, parameter :: jmin = 1
   integer :: jmax
@@ -41,7 +40,7 @@ program read_op
   end do
   ! temperature array
   jmax = (tmp_max - tmp_min) / (dtmp*2d0) + 1
-  print *, 'jmax=', jmax
+!  print *, 'jmax=', jmax
   allocate(tmp(jmin:jmax))
   do j = jmin, jmax
      tmp(j) = tmp_min + (dtmp*2d0) * (j - 1)
@@ -55,7 +54,7 @@ program read_op
 
   ! number of elements, indecies of temperature (min, max, skip)
   read(55,*) nel, ite1, ite2, ite3
-  print *, ite1, ite2, ite3
+!  print *, ite1, ite2, ite3
 
   ! number of temperature grids
   icmax = 0
@@ -109,9 +108,9 @@ program read_op
 #endif
      end do
      write(88,*) t(ic), rho_min0, rho_max0
-     print *, t(ic), rho_min0, rho_max0
+!     print *, t(ic), rho_min0, rho_max0
 #ifdef DRHOMIN
-     print *, 'T=', t(ic), 'drhomin =', drhomin, 'rhomin=', rhomin, 'rhomax=', rhomax
+!     print *, 'T=', t(ic), 'drhomin =', drhomin, 'rhomin=', rhomin, 'rhomax=', rhomax
 #endif
 
      do k = kmin, kmax

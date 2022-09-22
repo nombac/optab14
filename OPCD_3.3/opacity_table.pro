@@ -23,9 +23,6 @@ PRO opacity_table
   ENDFOR
   CLOSE, 1
 
-; component
-  component = '7.02'
-
   OPENR, 1, 'op_ros.data', /F77_UNFORMATTED, /SWAP_ENDIAN
   jrmax = 0L & krmax = 0L
   READU, 1, jrmax, krmax
@@ -59,7 +56,7 @@ PRO opacity_table
 
 ; plot
   !p.multi = [0,2,1]
-  psfile = 'opacity_table.'+component
+  psfile = 'opacity_table'
 ;  PS_START, psfile+'.eps', /ENCAPSULATED, /LANDSCAPE, /NOMATCH, DEFAULT_THICKNESS=0, FONT=1, TT_FONT='helvetica', XSIZE=12, YSIZE=5
   PS_OPEN, psfile, /color, ps_fonts='helvetica', /cmyk, /encapsulated, XSIZE=8.5, YSIZE=3.5
 
