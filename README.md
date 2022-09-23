@@ -1,5 +1,5 @@
 # optab14
-This package contains codes to create hybrid opacity tables used in Shigenobu Hirose et al 2014 ApJ 787 1 (doi:10.1088/0004-637X/787/1/1), based on the following public opacity tables:
+This package contains codes to create hybrid opacity tables used in Shigenobu Hirose et al 2014 ApJ 787 1 (doi:[10.1088/0004-637X/787/1/1](http://dx.doi.org/10.1088/0004-637X/787/1/1)), based on the following public opacity tables:
 - Semenov opacity for dust opacity
 - Ferguson opacity for low-temperature gas opacity
 - Opacity Project for high-tempereture gas opacity
