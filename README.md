@@ -5,7 +5,7 @@ This package contains codes to create hybrid opacity tables used in Shigenobu Hi
 - Opacity Project for high-tempereture gas opacity
 
 ## Hybrid opacity
-[`hybrid/`](hybrid/README.md)
+[`hybrid/`](hybrid/)
 
 <img src="./hybrid/opacity_table.png" width="800">
 
@@ -23,17 +23,17 @@ ENDIF
 ```
 
 ## [Semenov opacity](https://www2.mpia-hd.mpg.de/~semenov/Opacities/opacities.html)
-[`Semenov/`](Semenov/README.md)
+[`Semenov/`](Semenov/)
 
 <img src="./Semenov/opacity.png" width="800">
 
 ## [Ferguson opacity](https://www.wichita.edu/academics/fairmount_college_of_liberal_arts_and_sciences/physics/Research/opacity.php)
-[`Ferguson/`](Ferguson/README.md)
+[`Ferguson/`](Ferguson/)
 
 <img src="./Ferguson/opacity_table.png" width="800">
 
 ## [Opacity Project](http://cdsweb.u-strasbg.fr/topbase/TheOP.html)
-[`OPCD_3.3/`](OPCD_3.3/README.md)
+[`OPCD_3.3/`](OPCD_3.3/)
 
 <img src="./OPCD_3.3/opacity_table.png" width="800">
 
