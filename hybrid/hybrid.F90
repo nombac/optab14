@@ -212,7 +212,8 @@
           opa_ros3 = log10(0.33d0 +10d52 * sqrt((10d0**rho)**9 / egas**7))
           opa_pla3 = log10(        37d52 * sqrt((10d0**rho)**9 / egas**7))
           
-          if(opa_ros0 > (OPACITY_DUST) .or. tmp < TMP_DUST) then
+!          if(opa_ros0 > (OPACITY_DUST) .or. tmp < TMP_DUST) then
+          if(opa_ros0 > (OPACITY_DUST)) then
              dust(i,j) = 1 ! DUST GRAINS EXIST
              opa_ros(i,j) = opa_ros0! + opa_ros1 * f1r + opa_ros2 * f2r + opa_ros3 * f3r
              opa_pla(i,j) = opa_pla0! + opa_pla1 * f1p + opa_pla2 * f2p + opa_pla3 * f3p

@@ -175,6 +175,9 @@ pro opacity_table
   CGOPLOT, temper_op, rhomax_op, THICK=1, COL='WHITE', LIN=1
   CGOPLOT, temper_fe, rhomin_fe, THICK=1, COL='WHITE', LIN=1
   CGOPLOT, temper_fe, rhomax_fe, THICK=1, COL='WHITE', LIN=1
+  CGTEXT, 1, -12, 'Semonov', charsize=1, COL='WHITE'
+  CGTEXT, 3.5, -15, 'Ferguson', charsize=1, COL='WHITE', ORIEN=90
+  CGTEXT, 4.5, -10, 'OP', charsize=1, COL='WHITE'
   
   ; Planck-mean opacity
   p = [0.2, 0.2, 0.9, 0.9]
@@ -186,6 +189,9 @@ pro opacity_table
   CGOPLOT, temper_op, rhomax_op, THICK=1, COL='WHITE', LIN=1
   CGOPLOT, temper_fe, rhomin_fe, THICK=1, COL='WHITE', LIN=1
   CGOPLOT, temper_fe, rhomax_fe, THICK=1, COL='WHITE', LIN=1
+  CGTEXT, 1, -12, 'Semonov', charsize=1, COL='WHITE'
+  CGTEXT, 3.5, -15, 'Ferguson', charsize=1, COL='WHITE', ORIEN=90
+  CGTEXT, 4.5, -10, 'OP', charsize=1, COL='WHITE'
 
   PS_CLOSE
 
