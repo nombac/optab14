@@ -269,11 +269,11 @@ def main():
 
     # Fixed text annotations to match IDL script
     # Positions are in log10 units
-    axes[0].text(1, -12, 'Semonov', color='white', fontsize=10)
-    axes[0].text(3.5, -15, 'Ferguson', color='white', fontsize=10, rotation=90, va='bottom')
+    axes[0].text(2.5, -12, 'Semonov', color='white', fontsize=10, rotation=90)
+    axes[0].text(3.2, -15, 'Ferguson', color='white', fontsize=10, rotation=90, va='bottom')
     axes[0].text(4.5, -10, 'OP', color='white', fontsize=10)
-    axes[1].text(1, -12, 'Semonov', color='white', fontsize=10)
-    axes[1].text(3.5, -15, 'Ferguson', color='white', fontsize=10, rotation=90, va='bottom')
+    axes[1].text(2.5, -12, 'Semonov', color='white', fontsize=10, rotation=90)
+    axes[1].text(3.2, -15, 'Ferguson', color='white', fontsize=10, rotation=90, va='bottom')
     axes[1].text(4.5, -10, 'OP', color='white', fontsize=10)
 
     # Reduce top/bottom whitespace and widen spacing between subplots
