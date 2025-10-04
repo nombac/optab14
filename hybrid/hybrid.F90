@@ -118,15 +118,10 @@
     tmp_fep = temp_fe_op
     tmp_opp = 7.0d0
 
-    !temperature range
-    tmp_min =  0.5d0
-    tmp_max =    6d0
-    dtmp    =0.01d0
-
-    ! density range
-    rho_min = -22d0
-    rho_max =   0d0
-    drho    =0.04d0
+    ! Read ranges from input.dat (log10 units): tmp_min tmp_max dtmp rho_min rho_max drho
+    open(9, file='input.dat', status='old', action='read')
+    read(9, *) tmp_min, tmp_max, dtmp, rho_min, rho_max, drho
+    close(9)
 
     ! Guard: if dust is enabled and lower temp bound is below Semenov grid min, abort
     if (use_dust) then
@@ -271,13 +266,6 @@
        end do
     end do
     
-    open(8, file='opacity.in')
-    write(8,*) imax, jmax
-    write(8,*) 10d0**tmp_min, 10d0**tmp_max
-    write(8,*) 10d0**rho_min, 10d0**rho_max
-    write(8,*) DEPLETION
-    close(8)
-
     ! Write human-readable table (text) with header and per-cell values
     call write_text_table('opacity_table.txt', imax, jmax, tmp_min, dtmp, rho_min, drho, opa_ros, opa_pla, dust)
     

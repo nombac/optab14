@@ -26,27 +26,27 @@ import matplotlib.gridspec as gridspec
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 
-def read_opacity_in(path: Path) -> Tuple[int, int, float, float, float, float, Optional[float]]:
-    """Read opacity.in
+def read_input_dat(path: Path) -> Tuple[int, int, float, float, float, float, float, float]:
+    """Read input.dat with log10 ranges: tmp_min tmp_max dtmp rho_min rho_max drho
 
-    Returns: (nitt, nidd, topmin, topmax, dopmin, dopmax, depletion)
+    Returns: (nitt, nidd, ltmin, ltmax, dlt, lrmin, lrmax, dlr)
     """
+    tokens = []
     with path.open("r") as f:
-        line1 = f.readline().strip().split()
-        if len(line1) < 2:
-            raise ValueError("opacity.in: first line must be 'nitt nidd'")
-        nitt, nidd = int(line1[0]), int(line1[1])
-
-        line2 = f.readline().strip().split()
-        topmin, topmax = float(line2[0]), float(line2[1])
-
-        line3 = f.readline().strip().split()
-        dopmin, dopmax = float(line3[0]), float(line3[1])
-
-        # Optional 4th line (DEPLETION)
-        rest = f.readline()
-        depletion = float(rest.strip()) if rest else None
-    return nitt, nidd, topmin, topmax, dopmin, dopmax, depletion
+        for line in f:
+            parts = line.strip().split()
+            for p in parts:
+                try:
+                    tokens.append(float(p))
+                except Exception:
+                    pass
+    if len(tokens) < 6:
+        raise ValueError("input.dat must contain at least 6 numbers: tmp_min tmp_max dtmp rho_min rho_max drho (log10 units)")
+    ltmin, ltmax, dlt, lrmin, lrmax, dlr = tokens[:6]
+    # Compute counts consistent with Fortran logic
+    nitt = int((ltmax - ltmin) / dlt) + 1
+    nidd = int((lrmax - lrmin) / dlr) + 1
+    return nitt, nidd, ltmin, ltmax, dlt, lrmin, lrmax, dlr
 
 
 def read_fortran_unformatted_matrix(
@@ -190,8 +190,8 @@ def add_overlays(ax, tsubl, dsubl, t_ferguson_max, op_border, fe_border):
 
 def main():
     root = Path(".")
-    header_path = root / "opacity.in"
-    nitt, nidd, topmin_lin, topmax_lin, dopmin_lin, dopmax_lin, depletion = read_opacity_in(header_path)
+    header_path = root / "input.dat"
+    nitt, nidd, ltmin, ltmax, dlt, lrmin, lrmax, dlr = read_input_dat(header_path)
 
     kr = read_fortran_unformatted_matrix(root / "kR.dat", nitt, nidd)
     kp = read_fortran_unformatted_matrix(root / "kP.dat", nitt, nidd)
@@ -205,9 +205,7 @@ def main():
     lkr = np.clip(lkr_raw, value_min, value_max)
     lkp = np.clip(lkp_raw, value_min, value_max)
 
-    # Axes are log10 of the linear ranges written by Fortran
-    ltmin, ltmax = np.log10(topmin_lin), np.log10(topmax_lin)
-    lrmin, lrmax = np.log10(dopmin_lin), np.log10(dopmax_lin)
+    # Axes are log10 ranges directly read from input.dat
 
     # Optional overlays
     t_ferguson_max = None

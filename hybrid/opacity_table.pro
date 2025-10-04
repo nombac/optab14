@@ -15,15 +15,15 @@ pro opacity_table
   READF, 1, t_ferguson_max
   CLOSE, 1
 
-; READ OPACITY TABLES
+  ; READ INPUT RANGES (log10 units) FROM input.dat
   dir = './'
   nidd = 0
   nitt = 0
-  OPENR, 1, dir+'opacity.in'
-  READF, 1, nitt, nidd
-  READF, 1, topmin, topmax
-  READF, 1, dopmin, dopmax
+  OPENR, 1, dir+'input.dat'
+  READF, 1, topmin, topmax, dtmp, dopmin, dopmax, drho
   CLOSE, 1
+  nitt = FIX((topmax - topmin) / dtmp) + 1
+  nidd = FIX((dopmax - dopmin) / drho) + 1
   print, nitt, nidd
   meanp = DBLARR(nitt,nidd)
   meanr = DBLARR(nitt,nidd)
@@ -124,7 +124,7 @@ pro opacity_table
   CLOSE, 1
 
   
-; xrange and yrange
+  ; xrange and yrange
   xmin = topmin - (topmax - topmin) / FLOAT(nitt - 1) / 2
   xmax = topmax + (topmax - topmin) / FLOAT(nitt - 1) / 2
   ymin = dopmin - (dopmax - dopmin) / FLOAT(nidd - 1) / 2
