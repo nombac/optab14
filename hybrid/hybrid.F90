@@ -40,6 +40,8 @@
     real(8), allocatable :: t_opr(:), d_opr(:), t_opp(:), d_opp(:)
     real(8), allocatable :: ros_op(:,:), pla_op(:,:)
     real(8) :: egas
+    logical :: use_dust, has_use_dust_file
+    integer :: use_dust_int
     REAL*8, PARAMETER :: temp_fe_op = 3.7d0
     
 ! READ SEMENOV OPACITIES
@@ -61,6 +63,16 @@
     allocate(t_sep(nt_sep), d_sep(nd_sep), pla_se(nt_sep,nd_sep))
     read(7) t_sep, d_sep, pla_se
     close(7)
+
+    ! Read runtime parameter for dust usage (default: enabled)
+    use_dust = .true.
+    inquire(file='use_dust.in', exist=has_use_dust_file)
+    if (has_use_dust_file) then
+       open(11, file='use_dust.in', status='old', action='read')
+       read(11, *, end=100, err=100) use_dust_int
+       if (use_dust_int == 0) use_dust = .false.
+100    close(11)
+    end if
 
 ! READ FERGUSON OPACITIES    
     open(7, file=FERGUSON_ROS, form='unformatted', status='old')
@@ -115,6 +127,15 @@
     rho_min = -22d0
     rho_max =   0d0
     drho    =0.04d0
+
+    ! Guard: if dust is enabled and lower temp bound is below Semenov grid min, abort
+    if (use_dust) then
+       if (tmp_min < t_ser(1)) then
+          write(*,*) 'ERROR: tmp_min (log10T=', tmp_min, ') is below Semenov dust table min (log10T=', t_ser(1), ').'
+          write(*,*) 'Please raise tmp_min or disable dust via use_dust.in (set 0).'
+          stop 1
+       end if
+    end if
 
     imax = int((tmp_max - tmp_min) / dtmp) + 1
     jmax = int((rho_max - rho_min) / drho) + 1
@@ -212,15 +233,16 @@
           opa_ros3 = log10(0.33d0 +10d52 * sqrt((10d0**rho)**9 / egas**7))
           opa_pla3 = log10(        37d52 * sqrt((10d0**rho)**9 / egas**7))
           
-!          if(opa_ros0 > (OPACITY_DUST) .or. tmp < TMP_DUST) then
-          if(opa_ros0 > (OPACITY_DUST)) then
+          ! Dust usage controlled by runtime flag; treat low T as dusty as well
+          if(use_dust .and. (opa_ros0 > (OPACITY_DUST) .or. tmp < TMP_DUST)) then
              dust(i,j) = 1 ! DUST GRAINS EXIST
-             opa_ros(i,j) = opa_ros0! + opa_ros1 * f1r + opa_ros2 * f2r + opa_ros3 * f3r
-             opa_pla(i,j) = opa_pla0! + opa_pla1 * f1p + opa_pla2 * f2p + opa_pla3 * f3p
+             opa_ros(i,j) = opa_ros0
+             opa_pla(i,j) = opa_pla0
           else
-             dust(i,j) = 0 ! DUST GRAINS SUBLIMATED
+             dust(i,j) = 0 ! DUST GRAINS SUBLIMATED or dust disabled
+             ! Gas-only composition; use correct weights for Rosseland/Planck
              IF(opa_ros1*0d0 == 0d0 .and. opa_ros2*0d0 == 0d0) THEN
-                opa_ros(i,j) = opa_ros1 * f1r + opa_ros2 * f2r! + opa_ros3 * f3r
+                opa_ros(i,j) = opa_ros1 * f1r + opa_ros2 * f2r
              ELSE IF(opa_ros1*0d0 == 0d0 .and. opa_ros2*0d0 /= 0d0) THEN
                 opa_ros(i,j) = opa_ros1
              ELSE IF(opa_ros1*0d0 /= 0d0 .and. opa_ros2*0d0 == 0d0) THEN
@@ -229,7 +251,7 @@
                 opa_ros(i,j) = TRANSFER(-1_8, 0d0)
              ENDIF
              IF(opa_pla1*0d0 == 0d0 .and. opa_pla2*0d0 == 0d0) THEN
-                opa_pla(i,j) = opa_pla1 * f1r + opa_pla2 * f2r! + opa_pla3 * f3r
+                opa_pla(i,j) = opa_pla1 * f1p + opa_pla2 * f2p
              ELSE IF(opa_pla1*0d0 == 0d0 .and. opa_pla2*0d0 /= 0d0) THEN
                 opa_pla(i,j) = opa_pla1
              ELSE IF(opa_pla1*0d0 /= 0d0 .and. opa_pla2*0d0 == 0d0) THEN
@@ -237,6 +259,12 @@
              ELSE
                 opa_pla(i,j) = TRANSFER(-1_8, 0d0)
              ENDIF
+
+             ! If dust is disabled, and gas weights both zero, mark as NaN
+             if(.not. use_dust) then
+                if(f1r == 0d0 .and. f2r == 0d0) opa_ros(i,j) = TRANSFER(-1_8, 0d0)
+                if(f1p == 0d0 .and. f2p == 0d0) opa_pla(i,j) = TRANSFER(-1_8, 0d0)
+             end if
           end if
 !!$          opa_ros(i,j) = opa_ros0
 !!$          opa_pla(i,j) = opa_pla0
@@ -249,6 +277,9 @@
     write(8,*) 10d0**rho_min, 10d0**rho_max
     write(8,*) DEPLETION
     close(8)
+
+    ! Write human-readable table (text) with header and per-cell values
+    call write_text_table('opacity_table.txt', imax, jmax, tmp_min, dtmp, rho_min, drho, opa_ros, opa_pla, dust)
     
     open(8, file='kP.dat', form='unformatted')
     write(8) 10d0**opa_pla
@@ -262,7 +293,31 @@
     close(8)
     
   contains
-    
+
+    subroutine write_text_table(filename, imax, jmax, tmp_min, dtmp, rho_min, drho, opa_ros, opa_pla, dust)
+      implicit none
+      character(len=*), intent(in) :: filename
+      integer, intent(in) :: imax, jmax
+      real(8), intent(in) :: tmp_min, dtmp, rho_min, drho
+      real(8), intent(in) :: opa_ros(imax,jmax), opa_pla(imax,jmax), dust(imax,jmax)
+      integer :: i, j, u
+      real(8) :: tlog, rlog, kR, kP
+
+      u = 99
+      open(u, file=filename, status='replace', action='write', form='formatted')
+      write(u,'(A)') 'log10T[K], log10rho[g/cm^3], kR[cm^2/g], kP[cm^2/g], dust'
+      do j = 1, jmax
+         rlog = rho_min + drho * (j - 1)
+         do i = 1, imax
+            tlog = tmp_min + dtmp * (i - 1)
+            kR = 10d0**opa_ros(i,j)
+            kP = 10d0**opa_pla(i,j)
+            write(u,'(1X, F8.3, 1X, F9.3, 1X, ES14.6, 1X, ES14.6, 1X, I1)') tlog, rlog, kR, kP, int(dust(i,j))
+         end do
+      end do
+      close(u)
+    end subroutine write_text_table
+
     real(8) function opacity(tmp, rho, opa, tmp0, rho0)
       real(8), intent(in) :: tmp
       real(8), intent(in) :: rho
