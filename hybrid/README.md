@@ -19,11 +19,16 @@
 
 ファイルパスは `hybrid.F90` 先頭の `#define` で定義されています。配置を変える場合はここを修正してください。
 
-`input.dat` の書式（log10 単位）:
-```
-tmp_min tmp_max dtmp  rho_min rho_max drho
-# 例: 0.5 6.0 0.01  -22.0 0.0 0.04
-```
+input.dat の使用方法（最重要）
+- 書式（log10 単位, 半角スペース区切り, 1 行でOK）
+  - `tmp_min tmp_max dtmp  rho_min rho_max drho`
+  - 例: `0.5 6.0 0.01  -22.0 0.0 0.04`
+- 各値の意味
+  - `tmp_min/tmp_max/dtmp`: 温度（log10 T[K]）の開始/終了/刻み
+  - `rho_min/rho_max/drho`: 密度（log10 ρ[g/cm^3]）の開始/終了/刻み
+- 注意事項
+  - ダスト有効時（`use_dust.in` が無い、または `1`）は `tmp_min >= t_ser(1)`（Semenov ダスト表の最小温度）である必要があります。満たさないとエラーで停止します。
+  - 値を変更したら `./a.out` を再実行して出力（kR/kP/dust）を更新してください。その後、`plot_opacity.py` で可視化を更新します。
 
 ## 1. テーブル生成（Fortran）
 
@@ -35,10 +40,13 @@ make      # a.out を生成
 ```
 
 制御パラメータ（実行時）:
-- `use_dust.in`（任意）
+- `input.dat`（最重要のコントロール）: 温度・密度レンジを log10 単位で指定（上記参照）。
+- `use_dust.in`（ダスト有無の切替、任意）
   - ファイルが無い場合: 既定で「ダスト有効」
   - `0` を書く: ダスト無効
   - `1` を書く: ダスト有効
+- `use_opacity.in`（後方互換の別名、任意）
+  - `use_dust.in` が無い場合のみ読み取られます（内容は同じく 0/1）。
 
 温度下限の安全チェック:
 - ダスト有効（`use_dust.in` が無い、または `1`）のとき、温度下限 `tmp_min` が Semenov グリッド最小温度（`t_ser(1)`）より低いとエラーを出して停止します。
@@ -96,9 +104,9 @@ python3 plot_opacity.py
 make
 
 # 2) 実行（input.dat を準備し、必要ならダスト設定）
-# 例: input.dat（1 行で OK）
-# 0.5 6.0 0.01  -22.0 0.0 0.04
-echo 0 > use_dust.in   # ダスト無効（任意）
+# 例: input.dat を編集後に保存
+# ダスト無効にしたい場合は 0 を書く（use_dust.in が無ければダスト有効）
+echo 0 > use_dust.in   # 任意
 ./a.out
 
 # 3) 可視化

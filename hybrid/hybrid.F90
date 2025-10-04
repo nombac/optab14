@@ -72,6 +72,15 @@
        read(11, *, end=100, err=100) use_dust_int
        if (use_dust_int == 0) use_dust = .false.
 100    close(11)
+    else
+       ! Backward-compatibility: accept use_opacity.in as an alias
+       inquire(file='use_opacity.in', exist=has_use_dust_file)
+       if (has_use_dust_file) then
+          open(12, file='use_opacity.in', status='old', action='read')
+          read(12, *, end=200, err=200) use_dust_int
+          if (use_dust_int == 0) use_dust = .false.
+200       close(12)
+       end if
     end if
 
 ! READ FERGUSON OPACITIES    
